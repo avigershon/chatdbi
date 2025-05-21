@@ -417,6 +417,13 @@ from open_webui.tasks import (
 
 from open_webui.utils.redis import get_sentinels_from_env
 
+import snowflake.connector
+import os
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+
+from decimal import Decimal
+from datetime import datetime, date
 
 if SAFE_MODE:
     print("SAFE MODE ENABLED")
@@ -1488,7 +1495,85 @@ async def get_app_latest_release_version(user=Depends(get_verified_user)):
 async def get_app_changelog():
     return {key: CHANGELOG[key] for idx, key in enumerate(CHANGELOG) if idx < 5}
 
+class SQLQuery(BaseModel):
+    sql: str
 
+def type_default(obj):
+    if isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    elif isinstance(obj, bool):
+        return bool(obj)
+    raise TypeError ("Type %s not serializable" % type(obj))
+
+@app.post("/api/workers/snowflake")
+async def execute_sql(form_data: SQLQuery, user=Depends(get_verified_user)):
+    # try:
+    #     # Simulate SQL execution (replace with actual execution logic)
+    #     result = {"status": "success", "data": f"Executed SQL {form_data.sql}"}
+    #     return result
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=f"Error executing SQL {form_data.sql}")
+    """
+    Queries Snowflake and returns an array of JSON records.
+
+    Parameters:
+    query (str): SQL query to execute.
+
+    Returns:
+    list: List of JSON records.
+
+    """
+    try:
+
+        with open("/app/backend/secrets/snowflake/snowflake.p8", "rb") as key:
+            p_key= serialization.load_pem_private_key(
+                key.read(),
+                password=os.environ['SNOWFLAKE_KEY_PASSWORD'].encode(),
+                backend=default_backend()
+            )
+
+        pkb = p_key.private_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption())
+
+        # Establish a connection
+        conn = snowflake.connector.connect(
+            user=os.environ['SNOWFLAKE_USER'],
+            role=os.environ['SNOWFLAKE_ROLE'],
+            account=os.environ['SNOWFLAKE_ACCOUNT'],
+            private_key=pkb,
+            warehouse=os.environ['SNOWFLAKE_WAREHOUSE'],
+            database=os.environ['SNOWFLAKE_DATABASE'],
+            schema=os.environ['SNOWFLAKE_SCHEMA']
+            )
+
+        # Create a cursor object
+        cursor = conn.cursor()
+
+        # Execute the query
+        cursor.execute(form_data.sql)
+
+        # Fetch all results
+        results = cursor.fetchall()
+
+        # Get column names
+        columns = [desc[0] for desc in cursor.description]
+
+        # Convert results to an array of JSON records
+        json_records = [dict(zip(columns, row)) for row in results]
+        print(json_records)
+        return json_records #json.dumps(json_records, indent=4, default=type_default)
+    except Exception as e:
+        log.debug(e)
+        return str(e)
+    # finally:
+    #     # Close the cursor and connection
+    #     cursor.close()
+    #     conn.close()
+        
 ############################
 # OAuth Login & Callback
 ############################
