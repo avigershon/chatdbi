@@ -555,26 +555,26 @@
 							{#if stdout || stderr}
 								<div class=" ">
 									<div class=" text-gray-500 text-xs mb-1">STDOUT/STDERR</div>
-									{#if lang.toLowerCase() === 'sql'}
-										<div class="text-sm">
-											{@html '<table><tr><td>test</td></tr></table>'}
-										</div>
-									{:else}
-										<div
-											class="text-sm {stdout?.split('\n')?.length > 100
-												? `max-h-96`
-												: ''}  overflow-y-auto"
-										>
-											{stdout || stderr}
-										</div>
-									{/if}
+									<div
+										class="text-sm {stdout?.split('\n')?.length > 100
+											? `max-h-96`
+											: ''}  overflow-y-auto"
+									>
+										{stdout || stderr}
+									</div>
 								</div>
 							{/if}
 							{#if result || files}
 								<div class=" ">
 									<div class=" text-gray-500 text-xs mb-1">RESULT</div>
 									{#if result}
-										<div class="text-sm">{`${JSON.stringify(result)}`}</div>
+										{#if lang.toLowerCase() === 'sql'}
+											<div class="text-sm">
+												{@html result}
+											</div>
+										{:else}
+											<div class="text-sm">{`${JSON.stringify(result)}`}</div>
+										{/if}
 									{/if}
 									{#if files}
 										<div class="flex flex-col gap-2">
