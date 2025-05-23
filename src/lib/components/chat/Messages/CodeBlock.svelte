@@ -280,37 +280,34 @@
 				}
 			}
 
-			if (lang.toLowerCase() !== 'sql'){
-				if (data['result']) {
-					result = data['result'];
-					const resultLines = result.split('\n');
+			if (data['result']) {
+				result = data['result'];
+				const resultLines = result.split('\n');
 
-					for (const [idx, line] of resultLines.entries()) {
-						if (line.startsWith('data:image/png;base64')) {
-							if (files) {
-								files.push({
+				for (const [idx, line] of resultLines.entries()) {
+					if (line.startsWith('data:image/png;base64')) {
+						if (files) {
+							files.push({
+								type: 'image/png',
+								data: line
+							});
+						} else {
+							files = [
+								{
 									type: 'image/png',
 									data: line
-								});
-							} else {
-								files = [
-									{
-										type: 'image/png',
-										data: line
-									}
-								];
-							}
+								}
+							];
+						}
 
-							if (result.startsWith(`${line}\n`)) {
-								result = result.replace(`${line}\n`, ``);
-							} else if (result.startsWith(`${line}`)) {
-								result = result.replace(`${line}`, ``);
-							}
+						if (result.startsWith(`${line}\n`)) {
+							result = result.replace(`${line}\n`, ``);
+						} else if (result.startsWith(`${line}`)) {
+							result = result.replace(`${line}`, ``);
 						}
 					}
 				}
 			}
-										
 
 			data['stderr'] && (stderr = data['stderr']);
 			data['result'] && (result = data['result']);
@@ -413,6 +410,12 @@
 			pyodideWorker.terminate();
 		}
 	});
+
+	const unescapeHtml = async (htmlString) => {
+		const doc = new DOMParser().parseFromString(htmlString, 'text/html');
+		return doc.documentElement.textContent;
+	}
+
 </script>
 
 <div>
@@ -560,7 +563,7 @@
 									<div class=" text-gray-500 text-xs mb-1">STDOUT/STDERR</div>
 									{#if lang.toLowerCase() === 'sql'}
 										<div class="text-sm">
-											{@html stdout || stderr || result}
+											{@html unescapeHtml(stdout || stderr || result)}
 										</div>
 									{:else}
 										<div
