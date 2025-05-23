@@ -410,12 +410,6 @@
 			pyodideWorker.terminate();
 		}
 	});
-
-	const unescapeHtml = async (htmlString) => {
-		const doc = new DOMParser().parseFromString(htmlString, 'text/html');
-		return doc.documentElement.textContent;
-	}
-
 </script>
 
 <div>
@@ -563,7 +557,7 @@
 									<div class=" text-gray-500 text-xs mb-1">STDOUT/STDERR</div>
 									{#if lang.toLowerCase() === 'sql'}
 										<div class="text-sm">
-											{@html unescapeHtml(stdout || stderr || result)}
+											{@html '<table><tr><td>test</td></tr></table>'}
 										</div>
 									{:else}
 										<div
