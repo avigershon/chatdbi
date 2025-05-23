@@ -280,34 +280,37 @@
 				}
 			}
 
-			if (data['result']) {
-				result = data['result'];
-				const resultLines = result.split('\n');
+			if (lang.toLowerCase() !== 'sql'){
+				if (data['result']) {
+					result = data['result'];
+					const resultLines = result.split('\n');
 
-				for (const [idx, line] of resultLines.entries()) {
-					if (line.startsWith('data:image/png;base64')) {
-						if (files) {
-							files.push({
-								type: 'image/png',
-								data: line
-							});
-						} else {
-							files = [
-								{
+					for (const [idx, line] of resultLines.entries()) {
+						if (line.startsWith('data:image/png;base64')) {
+							if (files) {
+								files.push({
 									type: 'image/png',
 									data: line
-								}
-							];
-						}
+								});
+							} else {
+								files = [
+									{
+										type: 'image/png',
+										data: line
+									}
+								];
+							}
 
-						if (result.startsWith(`${line}\n`)) {
-							result = result.replace(`${line}\n`, ``);
-						} else if (result.startsWith(`${line}`)) {
-							result = result.replace(`${line}`, ``);
+							if (result.startsWith(`${line}\n`)) {
+								result = result.replace(`${line}\n`, ``);
+							} else if (result.startsWith(`${line}`)) {
+								result = result.replace(`${line}`, ``);
+							}
 						}
 					}
 				}
 			}
+										
 
 			data['stderr'] && (stderr = data['stderr']);
 			data['result'] && (result = data['result']);
