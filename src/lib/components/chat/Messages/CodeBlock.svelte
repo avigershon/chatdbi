@@ -555,13 +555,19 @@
 							{#if stdout || stderr}
 								<div class=" ">
 									<div class=" text-gray-500 text-xs mb-1">STDOUT/STDERR</div>
-									<div
-										class="text-sm {stdout?.split('\n')?.length > 100
-											? `max-h-96`
-											: ''}  overflow-y-auto"
-									>
-										{stdout || stderr}
-									</div>
+									{#if lang.toLowerCase() === 'sql'}
+										<div class="text-sm">
+											{@html stdout || stderr || result}
+										</div>
+									{:else}
+										<div
+											class="text-sm {stdout?.split('\n')?.length > 100
+												? `max-h-96`
+												: ''}  overflow-y-auto"
+										>
+											{stdout || stderr}
+										</div>
+									{/if}
 								</div>
 							{/if}
 							{#if result || files}
