@@ -188,18 +188,14 @@ export const addFileToKnowledgeById = async (token: string, id: string, fileId: 
 			authorization: `Bearer ${token}`
 		},
 		body: JSON.stringify({
-			file_id: fileId
+			file_id: [fileId]
 		})
 	})
 		.then(async (res) => {
-			console.log('line 195');
-			console.log(res);
 			if (!res.ok) throw await res.json();
 			return res.json();
 		})
 		.then((json) => {
-			console.log('line 200');
-			console.log(json);
 			return json;
 		})
 		.catch((err) => {
