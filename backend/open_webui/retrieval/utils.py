@@ -403,19 +403,23 @@ def get_embedding_function(
         )
 
         def generate_multiple(query, prefix, user, func):
+            print(f"generate_multiple:query {query} prefix {prefix} user {user}")
             if isinstance(query, list):
                 embeddings = []
                 for i in range(0, len(query), embedding_batch_size):
-                    embeddings.extend(
-                        func(
-                            query[i : i + embedding_batch_size],
-                            prefix=prefix,
-                            user=user,
-                        )
+                    result = func(
+                        query[i : i + embedding_batch_size],
+                        prefix=prefix,
+                        user=user,
                     )
+                    if result is None:
+                        # handle the None case — skip or raise error
+                        continue  # or raise Exception("func returned None")
+                    embeddings.extend(result)
                 return embeddings
             else:
                 return func(query, prefix, user)
+
 
         return lambda query, prefix=None, user=None: generate_multiple(
             query, prefix, user, func
