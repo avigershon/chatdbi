@@ -188,7 +188,7 @@ export const addFileToKnowledgeById = async (token: string, id: string, fileId: 
 			authorization: `Bearer ${token}`
 		},
 		body: JSON.stringify({
-			file_id: [fileId]
+			file_id: fileId
 		})
 	})
 		.then(async (res) => {
